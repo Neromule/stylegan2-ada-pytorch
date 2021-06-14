@@ -241,7 +241,7 @@ class ImageFolderDataset(Dataset):
 
 
 class CardArtDataset(Dataset):
-    def __init__(self, path):
+    def __init__(self, path, max_size=None, resolution=None, use_labels=None, xflip=None):
         with open(path, 'rb') as f:
             self.data = pickle.load(f)
 
