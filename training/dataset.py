@@ -151,6 +151,10 @@ class Dataset(torch.utils.data.Dataset):
 
 #----------------------------------------------------------------------------
 
+
+import pickle
+import cv2
+
 class ImageFolderDataset(Dataset):
     def __init__(self,
         path,                   # Path to directory or zip.
