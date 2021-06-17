@@ -272,4 +272,4 @@ class CardArtDataset(Dataset):
         for i in range(len(self.keys)):
             labels.append(labels_from_metadata(self.metadata[i]))
 
-        return np.array(labels, dtype=np.float)
+        return np.array(labels, dtype=np.float32)
