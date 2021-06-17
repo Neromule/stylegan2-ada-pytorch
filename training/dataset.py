@@ -256,7 +256,7 @@ class CardArtDataset(Dataset):
         sample = cv2.imdecode(self.data[self.keys[0]], cv2.IMREAD_COLOR)
 
         super().__init__(name=img_path.split('/')[-1], raw_shape=[len(self.keys), 3] + list(sample.shape[:2]),
-                         xflip=True)
+                         use_labels=use_labels, xflip=True)
 
     def _load_raw_image(self, raw_idx):
         image = cv2.imdecode(self.data[self.keys[raw_idx]], cv2.IMREAD_COLOR)
