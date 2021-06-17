@@ -241,21 +241,37 @@ class ImageFolderDataset(Dataset):
 
 
 class CardArtDataset(Dataset):
-    def __init__(self, path, max_size=None, resolution=None, use_labels=None, xflip=None):
-        with open(path, 'rb') as f:
+    def __init__(self, img_path, json_path, max_size=None, resolution=None, use_labels=None, xflip=None):
+        def labels_from_metadata(meta):
+            return [(1 if meta[c] else 0) for c in 'WUBRG']
+
+        with open(img_path, 'rb') as f:
             self.data = pickle.load(f)
+
+        with open(json_path, 'r') as f:
+            self.metadata = json.load(f)
 
         self.keys = list(self.data.keys())
 
-        for k in self.keys:
+        self.labels = []
+
+        for i, k in enumerate(self.keys):
             self.data[k] = np.frombuffer(self.data[k], dtype=np.uint8)
+
+            self.labels.append(labels_from_metadata(self.metadata[i]))
+
+        self.labels = torch.tensor(self.labels, dtype=torch.float)
 
         sample = cv2.imdecode(self.data[self.keys[0]], cv2.IMREAD_COLOR)
 
-        super().__init__(name=path.split('/')[-1], raw_shape=[len(self.keys), 3] + list(sample.shape[:2]), xflip=True)
+        super().__init__(name=img_path.split('/')[-1], raw_shape=[len(self.keys), 3] + list(sample.shape[:2]),
+                         xflip=True)
 
     def _load_raw_image(self, raw_idx):
         image = cv2.imdecode(self.data[self.keys[raw_idx]], cv2.IMREAD_COLOR)
         image = image[:, :, ::-1]  # BGR => RGB
         image = image.transpose(2, 0, 1)  # HWC => CHW
         return image
+
+    def _load_raw_labels(self):
+        return self.labels
