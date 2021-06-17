@@ -242,9 +242,6 @@ class ImageFolderDataset(Dataset):
 
 class CardArtDataset(Dataset):
     def __init__(self, img_path, json_path, max_size=None, resolution=None, use_labels=None, xflip=None):
-        def labels_from_metadata(meta):
-            return [(1 if meta[c] else 0) for c in 'WUBRG']
-
         with open(img_path, 'rb') as f:
             self.data = pickle.load(f)
 
@@ -253,14 +250,8 @@ class CardArtDataset(Dataset):
 
         self.keys = list(self.data.keys())
 
-        self.labels = []
-
         for i, k in enumerate(self.keys):
             self.data[k] = np.frombuffer(self.data[k], dtype=np.uint8)
-
-            self.labels.append(labels_from_metadata(self.metadata[i]))
-
-        self.labels = torch.tensor(self.labels, dtype=torch.float)
 
         sample = cv2.imdecode(self.data[self.keys[0]], cv2.IMREAD_COLOR)
 
@@ -274,4 +265,11 @@ class CardArtDataset(Dataset):
         return image
 
     def _load_raw_labels(self):
-        return self.labels
+        def labels_from_metadata(meta):
+            return [(1 if meta[c] else 0) for c in 'WUBRG']
+
+        labels = []
+        for i in range(len(self.keys)):
+            labels.append(labels_from_metadata(self.metadata[i]))
+
+        return np.array(self.labels, dtype=np.float)
