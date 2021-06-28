@@ -241,12 +241,15 @@ class ImageFolderDataset(Dataset):
 
 
 class CardArtDataset(Dataset):
-    def __init__(self, img_path, json_path, max_size=None, resolution=None, use_labels=None, xflip=None):
+    def __init__(self, img_path, json_path, emb_path, max_size=None, resolution=None, use_labels=None, xflip=None):
         with open(img_path, 'rb') as f:
             self.data = pickle.load(f)
 
         with open(json_path, 'r') as f:
             self.metadata = json.load(f)
+
+        with open(emb_path, 'rb') as f:
+            self.embeddings = pickle.load(f)
 
         self.keys = list(self.data.keys())
 
@@ -269,26 +272,30 @@ class CardArtDataset(Dataset):
             labels = []
 
             labels += [(1 if meta[c] else 0) for c in 'WUBRG']
-          
+
             year = int(meta['released_at'].split('-')[0])
-            labels += [int(year < 2000), int(2000 <= year < 2005), int(2005 <= year < 2010), int(2010 <= year < 2015), int(2015 <= year)]
+            labels += [int(year < 2000), int(2000 <= year < 2005), int(2005 <= year < 2010), int(2010 <= year < 2015),
+                       int(2015 <= year)]
 
             cmc = meta['cmc']
-            labels += [int(cmc == 0), int(cmc == 1), int(cmc == 2), int(cmc == 3), int(cmc == 4), int(cmc == 5), int(cmc == 6), int(6 < cmc)]
+            labels += [int(cmc == 0), int(cmc == 1), int(cmc == 2), int(cmc == 3), int(cmc == 4), int(cmc == 5),
+                       int(cmc == 6), int(6 < cmc)]
 
             rarity = ['common', 'uncommon', 'rare', 'mythic'].index(meta['rarity'])
             labels += [0] * rarity + [1] + [0] * (3 - rarity)
 
             super_types = meta['super_types']
-            labels += [int(t in super_types) for t in ('Legendary', )]
+            labels += [int(t in super_types) for t in ('Legendary',)]
 
             types = meta['types']
-            labels += [int(t in types) for t in ('Artifact', 'Creature', 'Enchantment', 'Instant', 'Land', 'Planeswalker', 'Sorcery')]
-          
+            labels += [int(t in types) for t in
+                       ('Artifact', 'Creature', 'Enchantment', 'Instant', 'Land', 'Planeswalker', 'Sorcery')]
+
             return labels
 
         labels = []
         for i in range(len(self.keys)):
             labels.append(labels_from_metadata(self.metadata[i]))
+        labels = np.array(labels, dtype=np.float32)
 
-        return np.array(labels, dtype=np.float32)
+        return np.concatenate((labels, self.embeddings), axis=1)
