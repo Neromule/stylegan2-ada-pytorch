@@ -51,9 +51,9 @@ def _should_use_custom_op(input):
     if input.device.type != 'cuda':
         return False
     #if any(torch.__version__.startswith(x) for x in ['1.7.', '1.8.', '1.9']):
-    #    return True
-    warnings.warn(f'conv2d_gradfix not supported on PyTorch {torch.__version__}. Falling back to torch.nn.functional.conv2d().')
-    return False
+    return True
+    #warnings.warn(f'conv2d_gradfix not supported on PyTorch {torch.__version__}. Falling back to torch.nn.functional.conv2d().')
+    #return False
 
 def _tuple_of_ints(xs, ndim):
     xs = tuple(xs) if isinstance(xs, (tuple, list)) else (xs,) * ndim
